@@ -1,0 +1,7 @@
+{
+  "source": {
+		"project": "rhel-cloud",
+    "family": "rhel-7"
+  },
+  "version": { "name": "rhel-7-v20210122" }
+}

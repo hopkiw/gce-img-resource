@@ -17,6 +17,21 @@ func NewCommand() *Command {
 	return &Command{}
 }
 
+/*
+{
+  "source": {
+		"project": "some-project",
+		"family": "some-family",
+		"regexp": "rhel-8-v([0-9]+).*",
+  },
+	"params": {
+		// Do we need get/put params? what would be a runtime variance?
+		"placeholder": "something",
+	},
+  "version": { "name": "rhel-8-v20220322" }
+}
+*/
+
 type Request struct {
 	Source  gceimgresource.Source  `json:"source"`
 	Version gceimgresource.Version `json:"version"`
@@ -24,7 +39,7 @@ type Request struct {
 }
 
 type Params struct {
-	SkipDownload string `json:"skip_download"`
+	Placeholder string `json:"placeholder"`
 }
 
 type Response struct {
@@ -42,6 +57,9 @@ func (command *Command) Run(destinationDir string, request Request) (Response, e
 
 	ctx := context.Background()
 	computeService, err := compute.NewService(ctx)
+	if err != nil {
+		return Response{}, err
+	}
 
 	image, err := computeService.Images.Get(request.Source.Project, request.Version.Name).Do()
 	if err != nil {
