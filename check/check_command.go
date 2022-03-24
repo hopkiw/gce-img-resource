@@ -45,9 +45,6 @@ func (command *Command) Run(request Request) (Response, error) {
 	if request.Source.Family != "" {
 		call = call.Filter(fmt.Sprintf("family = %s", request.Source.Family))
 	}
-	if request.Version.Name == "" {
-		call = call.OrderBy("creationTimestamp desc")
-	}
 
 	var is []*compute.Image
 	var pt string
@@ -56,7 +53,7 @@ func (command *Command) Run(request Request) (Response, error) {
 			return Response{}, err
 		}
 		is = append(is, il.Items...)
-		if il.NextPageToken == "" || request.Version.Name == "" {
+		if il.NextPageToken == "" {
 			break
 		}
 		pt = il.NextPageToken
@@ -64,19 +61,21 @@ func (command *Command) Run(request Request) (Response, error) {
 
 	var response Response
 	var start bool
-	for _, image := range is {
-		if request.Version.Name == "" {
-			// No version specified, return only the latest image.
-			response = append(response, gceimgresource.Version{Name: image.Name})
-			break
-		}
-		if image.Name == request.Version.Name {
-			start = true
-		}
-		if start {
-			response = append(response, gceimgresource.Version{Name: image.Name})
+	if request.Version.Name == "" {
+		// No version specified, return only the latest image.
+		image := is[len(is)-1]
+		response = append(response, gceimgresource.Version{Name: image.Name})
+	} else {
+		for _, image := range is {
+			if image.Name == request.Version.Name {
+				start = true
+			}
+			if start {
+				response = append(response, gceimgresource.Version{Name: image.Name})
+			}
 		}
 	}
 
+	// TODO: should this be nil or like '[]'
 	return response, nil
 }
