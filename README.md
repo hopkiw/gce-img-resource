@@ -11,14 +11,14 @@ This resource is based on [frodenas/gcs-resource][frodenas], which itself is bas
 
 * `family`: *Optional.* GCE Image family name. If set, versions are only produced for images with this family.
 
-* `regexp`: *Optional.*: **Not yet implemented**. Regular expression to apply to image names. Must contain a
+* `regexp`: *Optional.* **Not yet implemented** Regular expression to apply to image names. Must contain a
   capture group which matches a version in the image name. If provided, images are ordered by this version rather than creation date, and images which don't match or provide a valid version in the capture group will be skipped. Example:
 
     ```yaml
     regexp: my-image-v([0-9]+)
     ```
 
-* `json_key`: *Optional.* Raw JSON key to use for service account credentials. **Not yet implemented.**
+* `json_key`: *Optional.* **Not yet implemented** Raw JSON key to use for service account credentials.
 
 ### Example
 
@@ -27,10 +27,18 @@ Resource configuration that produces a version for *every* GCE image published t
 ```yaml
 ---
 resources:
-- name: latest-image-in-project
+- name: latest-image
   type: gce-image
   source:
     project: my-gcp-project
+
+jobs:
+- name: my-job
+  plan:
+  - get: latest-image
+    trigger: true
+  - task: some-task
+    config: {}
 ```
 
 ## Behavior

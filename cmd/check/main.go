@@ -19,7 +19,7 @@ func main() {
 		fatal("error reading request from stdin: %s", err)
 	}
 
-	response, err := check.NewCommand().Run(request)
+	response, err := check.Run(request)
 	if err != nil {
 		fatal("error getting images: %s", err)
 	}

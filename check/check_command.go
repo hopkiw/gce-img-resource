@@ -8,15 +8,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-type Command struct{}
-
-func NewCommand() *Command {
-	return &Command{}
-}
-
 /*
-A check request. The 'project' field is required.
-
 {
   "source": {
 		"project": "some-project",
@@ -27,21 +19,24 @@ A check request. The 'project' field is required.
 }
 */
 
+// Request is the input of a resource check.
 type Request struct {
 	Source  gceimgresource.Source  `json:"source"`
 	Version gceimgresource.Version `json:"version"`
 }
 
+// Response is the output of a resource check.
 type Response []gceimgresource.Version
 
-func (command *Command) Run(request Request) (Response, error) {
+// Run performs a check for image versions.
+func Run(request Request) (Response, error) {
 	ctx := context.Background()
 	computeService, err := compute.NewService(ctx)
 	if err != nil {
 		return Response{}, err
 	}
 
-	call := computeService.Images.List(request.Source.Project) //.OrderBy("creationTimestamp")
+	call := computeService.Images.List(request.Source.Project)
 	if request.Source.Family != "" {
 		call = call.Filter(fmt.Sprintf("family = %s", request.Source.Family))
 	}
@@ -59,23 +54,26 @@ func (command *Command) Run(request Request) (Response, error) {
 		pt = il.NextPageToken
 	}
 
-	var response Response
-	var start bool
-	if request.Version.Name == "" {
+	// Use this for correct encoding of empty list.
+	response := Response{}
+
+	if request.Version.Name == "" && len(is) > 0 {
 		// No version specified, return only the latest image.
 		image := is[len(is)-1]
 		response = append(response, gceimgresource.Version{Name: image.Name})
-	} else {
-		for _, image := range is {
-			if image.Name == request.Version.Name {
-				start = true
-			}
-			if start {
-				response = append(response, gceimgresource.Version{Name: image.Name})
-			}
+		return response, nil
+	}
+
+	var start bool
+	for _, image := range is {
+		if image.Name == request.Version.Name {
+			// Start appending from the matching version.
+			start = true
+		}
+		if start {
+			response = append(response, gceimgresource.Version{Name: image.Name})
 		}
 	}
 
-	// TODO: should this be nil or like '[]'
 	return response, nil
 }

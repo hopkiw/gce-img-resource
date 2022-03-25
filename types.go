@@ -1,22 +1,18 @@
 package gceimgresource
 
-//
-
+// Source is the configuration specifying which images to return.
 type Source struct {
 	Project string `json:"project"`
-	// Family is optional, it filters
+	// Family limits matching images to those with the specified family. Optional.
 	Family string `json:"family"`
-	// TODO: we should support regexp being optional - if it's not provided, we just return images sorted by creation date.
-	Regexp string `json:"regexp"`
+	// Regexp defines a regular expression to find semver embedded in image names. Optional.
+	//Regexp string `json:"regexp"` // TODO: Not yet implemented.
 }
 
+// Version represents a single image version.
 type Version struct {
 	Name string `json:"name"`
-	// version is either the semver in the regexp, or it is the creation date (in unix epoch?)
+	// Version is used for ordering returned images. Defaults to the image creation timestamp. If regexp is
+	// specified, Version will instead contain the parsed semver.
 	Version string `json:"version,omitempty"`
-}
-
-type Metadata struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
 }

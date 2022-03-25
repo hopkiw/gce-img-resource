@@ -23,7 +23,7 @@ func main() {
 		fatal("error reading request from stdin: %s", err)
 	}
 
-	response, err := in.NewCommand().Run(os.Args[1], request)
+	response, err := in.Run(os.Args[1], request)
 	if err != nil {
 		fatal("error getting image: %s", err)
 	}
